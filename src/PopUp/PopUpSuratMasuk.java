@@ -1,20 +1,129 @@
+package PopUp;
+
+import Kelas.Bagian;
+import Kelas.Kategori;
+import Main.MenuUtama;
+import java.awt.Desktop;
+import java.io.File;
+
+import java.sql.SQLException;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import kelas.SuratMasuk;
+
+import Main.MenuSuratMasuk;
+import static PopUp.PopUpSuratKeluar.cb_Bagian;
+import static PopUp.PopUpSuratKeluar.cb_Kategori;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
-package PopUp;
-
 /**
  *
  * @author rizan
  */
 public class PopUpSuratMasuk extends javax.swing.JFrame {
 
+    String judul;
+
     /**
-     * Creates new form PopUpBagian
+     * Creates new form SuratMasuk
      */
     public PopUpSuratMasuk() {
+
         initComponents();
+        otoID();
+
+        //    ambilDetail();
+        cbBagianSurat();
+        cbKategoriSurat();
+    }
+
+    public void ambilDetail() {
+
+//            suratMasuk sut = new suratMasuk();
+        tf_id.setText(SuratMasuk.getId_surat());
+        cb_Kategori.setSelectedItem(SuratMasuk.getKategori());
+        cb_BagianSurat.setSelectedItem(SuratMasuk.getBagian());
+        tf_asal.setText(SuratMasuk.getAsal_surat());
+        tf_Perihal.setText(SuratMasuk.getPerihal());
+
+        tTanggalDiterima.setDate(SuratMasuk.getTanggal_diterima());
+
+        txtfilepath.setText(SuratMasuk.getFile_data());
+
+    }
+
+    public void otoID() {
+        try {
+            SuratMasuk surat = new SuratMasuk();
+            String autoId = surat.otoID();
+
+            if (autoId != null) {
+                tf_id.setText(autoId);
+            } else {
+                tf_id.setText("1");
+            }
+            // tf_id.setEditable(false);
+            tf_id.setEnabled(false);
+
+        } catch (SQLException sQLException) {
+            System.out.println("Error saat memperoleh ID otomatis: " + sQLException.getMessage());
+            tf_id.setText("1");
+        }
+    }
+
+    void reset() {
+        tf_id.setText(null);
+        cb_Kategori.setSelectedItem(null);
+        cb_BagianSurat.setSelectedItem(null);
+        tf_asal.setText(null);
+        tf_Perihal.setText(null);
+        tTanggalDiterima.setDate(null);
+        txtfilepath.setText(null);
+    }
+
+    
+     void cbKategoriSurat() {
+        try {
+            PopUpSuratMasuk.this.cb_Kategori.addItem("--Pilih Kategori Surat--");
+
+            Kategori ks = new Kategori();
+            ResultSet data = ks.Tampil_CbKategoriSurat();
+
+            while (data.next()) {
+                PopUpSuratMasuk.this.cb_Kategori.addItem(data.getString("kode") + " - " + data.getString("nama"));
+            }
+
+            PopUpSuratMasuk.this.cb_Kategori.setSelectedItem("--Pilih Kategori Surat--");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    void cbBagianSurat() {
+        try {
+            cb_BagianSurat.addItem("--Pilih Bagian Surat--");
+
+            Bagian bg = new Bagian();
+            ResultSet data = bg.Tampil_CbBagianSurat();
+
+            while (data.next()) {
+                cb_BagianSurat.addItem(data.getString("kode") + " - " + data.getString("nama"));
+            }
+
+            cb_BagianSurat.setSelectedItem("--Pilih Bagian Surat--"); // Pilih default option
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -26,21 +135,109 @@ public class PopUpSuratMasuk extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        tf_id = new javax.swing.JTextField();
+        pn_SuratMasuk = new javax.swing.JPanel();
+        bt_Batal = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        bt_Close = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        tf_Perihal = new javax.swing.JTextField();
+        tf_asal = new javax.swing.JTextField();
+        tTanggalDiterima = new com.toedter.calendar.JDateChooser();
+        txtfilepath = new javax.swing.JTextField();
+        bUpload = new javax.swing.JButton();
+        jLabel10 = new javax.swing.JLabel();
+        bOPen = new javax.swing.JButton();
+        bTambah = new javax.swing.JButton();
+        bClose = new javax.swing.JButton();
+        bEdit = new javax.swing.JButton();
+        cb_BagianSurat = new javax.swing.JComboBox<>();
+        jLabel4 = new javax.swing.JLabel();
+        cb_Kategori = new javax.swing.JComboBox<>();
+        bHapus = new javax.swing.JButton();
+
+        tf_id.setBackground(new java.awt.Color(242, 242, 242));
+        tf_id.setForeground(new java.awt.Color(242, 242, 242));
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        pn_SuratMasuk.setBackground(new java.awt.Color(255, 255, 255));
 
-        jLabel1.setFont(new java.awt.Font("Georgia", 1, 24)); // NOI18N
-        jLabel1.setText("Form Tambah Surat Masuk");
-
-        bt_Close.setText("Close");
-        bt_Close.addActionListener(new java.awt.event.ActionListener() {
+        bt_Batal.setBackground(new java.awt.Color(204, 0, 0));
+        bt_Batal.setFont(new java.awt.Font("Segoe UI Semibold", 1, 14)); // NOI18N
+        bt_Batal.setForeground(new java.awt.Color(255, 255, 255));
+        bt_Batal.setText("Batal");
+        bt_Batal.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bt_CloseActionPerformed(evt);
+                bt_BatalActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI Semibold", 1, 18)); // NOI18N
+        jLabel1.setText("Surat Masuk");
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel2.setText("Kategori");
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel3.setText("Perihal");
+
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel5.setText("Asal Surat");
+
+        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel9.setText("Tanggal Diterima");
+
+        bUpload.setBackground(new java.awt.Color(51, 255, 0));
+        bUpload.setText("Upload");
+        bUpload.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bUploadActionPerformed(evt);
+            }
+        });
+
+        jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel10.setText("Upload Surat");
+
+        bOPen.setText("Open FIle");
+        bOPen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bOPenActionPerformed(evt);
+            }
+        });
+
+        bTambah.setText("TAMBAH");
+        bTambah.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bTambahActionPerformed(evt);
+            }
+        });
+
+        bClose.setText("CLOSE");
+        bClose.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bCloseActionPerformed(evt);
+            }
+        });
+
+        bEdit.setText("SIMPAN");
+        bEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bEditActionPerformed(evt);
+            }
+        });
+
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel4.setText("Bagian");
+
+        bHapus.setText("HAPUS");
+        bHapus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bHapusActionPerformed(evt);
             }
         });
 
@@ -51,17 +248,114 @@ public class PopUpSuratMasuk extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(bt_Close)
-                    .addComponent(jLabel1))
-                .addContainerGap(227, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel9)
+                                    .addComponent(jLabel3)
+                                    .addComponent(jLabel5))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(bUpload, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(tTanggalDiterima, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 537, Short.MAX_VALUE)
+                                        .addComponent(txtfilepath, javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(tf_Perihal, javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(tf_asal, javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(cb_BagianSurat, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addComponent(bOPen)))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(0, 128, Short.MAX_VALUE)
+                                .addComponent(cb_Kategori, javax.swing.GroupLayout.PREFERRED_SIZE, 538, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(416, 416, 416))))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(253, 253, 253)
+                        .addComponent(bHapus)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(bTambah)
+                        .addGap(73, 73, 73)
+                        .addComponent(bEdit)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(bClose))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel10))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel4)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 502, Short.MAX_VALUE)
-                .addComponent(bt_Close)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(cb_Kategori, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(25, 25, 25)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel4)
+                    .addComponent(cb_BagianSurat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(23, 23, 23)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(tf_asal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(tf_Perihal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tTanggalDiterima, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel9))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(txtfilepath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(21, 21, 21)
+                .addComponent(bUpload)
+                .addGap(14, 14, 14)
+                .addComponent(bOPen)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(bTambah)
+                    .addComponent(bEdit)
+                    .addComponent(bClose)
+                    .addComponent(bHapus))
+                .addGap(185, 185, 185))
+        );
+
+        jScrollPane2.setViewportView(jPanel1);
+
+        javax.swing.GroupLayout pn_SuratMasukLayout = new javax.swing.GroupLayout(pn_SuratMasuk);
+        pn_SuratMasuk.setLayout(pn_SuratMasukLayout);
+        pn_SuratMasukLayout.setHorizontalGroup(
+            pn_SuratMasukLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pn_SuratMasukLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(bt_Batal)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(pn_SuratMasukLayout.createSequentialGroup()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 764, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        pn_SuratMasukLayout.setVerticalGroup(
+            pn_SuratMasukLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pn_SuratMasukLayout.createSequentialGroup()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 567, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 121, Short.MAX_VALUE)
+                .addComponent(bt_Batal)
                 .addContainerGap())
         );
 
@@ -69,20 +363,201 @@ public class PopUpSuratMasuk extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pn_SuratMasuk, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(pn_SuratMasuk, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
-        setSize(new java.awt.Dimension(586, 573));
+        setSize(new java.awt.Dimension(778, 569));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void bt_CloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_CloseActionPerformed
+    private void bt_BatalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt_BatalActionPerformed
         dispose();
-    }//GEN-LAST:event_bt_CloseActionPerformed
+    }//GEN-LAST:event_bt_BatalActionPerformed
+
+    private void bUploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bUploadActionPerformed
+
+        JFileChooser jfc = new JFileChooser();
+        jfc.showOpenDialog(this);
+
+        try {
+            File selectedFile = jfc.getSelectedFile();
+            if (selectedFile != null) {
+                String filepath = selectedFile.getAbsolutePath();
+                filepath = filepath.replace('\\', '/');
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+                String timestamp = sdf.format(new Date());
+
+                String justFileName = selectedFile.getName();
+                String newName = timestamp + "_" + justFileName;
+
+                String destinationPath = "./Upload/surat/";
+                txtfilepath.setText(destinationPath + newName);
+
+                File destinationDirectory = new File(destinationPath);
+                if (!destinationDirectory.exists()) {
+                    destinationDirectory.mkdirs();
+                }
+
+                File destinationFile = new File(destinationDirectory, newName);
+
+                Files.copy(selectedFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // Menggunakan java.nio.file.Files untuk menyalin file
+            } else {
+                JOptionPane.showMessageDialog(null, "No file was selected");
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Failed to copy file: " + e.getMessage());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "An error occurred: " + e.getMessage());
+        }
+
+    }//GEN-LAST:event_bUploadActionPerformed
+
+    private void bOPenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bOPenActionPerformed
+        try {
+            String filePath = txtfilepath.getText().trim();
+            File file = new File(filePath);
+
+            if (file.exists()) {
+                Desktop.getDesktop().open(file);
+            } else {
+                JOptionPane.showMessageDialog(this, "File tidak ditemukan!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_bOPenActionPerformed
+
+    private void bTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bTambahActionPerformed
+
+        try {
+            SuratMasuk surat = new SuratMasuk();
+
+            String idSurat = tf_id.getText().trim();
+            String kategori = cb_Kategori.getSelectedItem().toString();
+            String bagian = cb_BagianSurat.getSelectedItem().toString();
+            String asalSurat = tf_asal.getText().trim();
+            String perihal = tf_Perihal.getText().trim();
+            java.util.Date tanggalDiterima = tTanggalDiterima.getDate();
+            String filePath = txtfilepath.getText().trim();
+
+            if (idSurat.isEmpty() || kategori.isEmpty() || bagian.isEmpty()
+                    || asalSurat.isEmpty() || perihal.isEmpty() || tanggalDiterima == null
+                    || filePath.isEmpty()) {
+
+                String missingFields = "SEMUA KOLOM HARUS DI ISI\n" + "Kolom yang masih kosong: ";
+                if (idSurat.isEmpty()) {
+                    missingFields += "ID Surat, ";
+                }
+                if (kategori.isEmpty()) {
+                    missingFields += "Kategori, ";
+                }
+                if (bagian.isEmpty()) {
+                    missingFields += "Bagian, ";
+                }
+                if (asalSurat.isEmpty()) {
+                    missingFields += "Asal Surat, ";
+                }
+                if (perihal.isEmpty()) {
+                    missingFields += "Perihal, ";
+                }
+                if (tanggalDiterima == null) {
+                    missingFields += "Tanggal Diterima, ";
+                }
+                if (filePath.isEmpty()) {
+                    missingFields += "File Path, ";
+                }
+
+                missingFields = missingFields.substring(0, missingFields.length() - 2);
+                JOptionPane.showMessageDialog(null, missingFields);
+                return;
+            }
+
+            surat.setId_surat(idSurat);
+            surat.setKategori(kategori);
+            surat.setBagian(bagian);
+            surat.setAsal_surat(asalSurat);
+            surat.setPerihal(perihal);
+            surat.setTanggal_diterima(new java.sql.Date(tanggalDiterima.getTime()));
+            surat.setFile_data(filePath);
+
+            surat.tambahSurat();
+
+            otoID();
+
+            reset();
+
+        } catch (SQLException sQLException) {
+            System.out.println("Data tidak masuk: " + sQLException.getMessage());
+            JOptionPane.showMessageDialog(null, "Gagal menyimpan data surat: " + sQLException.getMessage());
+        }
+        dispose();
+        MenuUtama.pn_Utama.removeAll();
+        MenuUtama.pn_Utama.add(new MenuSuratMasuk());
+        MenuUtama.pn_Utama.repaint();
+        MenuUtama.pn_Utama.revalidate();
+
+    }//GEN-LAST:event_bTambahActionPerformed
+
+    private void bCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bCloseActionPerformed
+        dispose();
+    }//GEN-LAST:event_bCloseActionPerformed
+
+    private void bEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bEditActionPerformed
+
+        try {
+            SuratMasuk surat = new SuratMasuk();
+
+            surat.setId_surat(tf_id.getText());
+            surat.setKategori(cb_Kategori.getSelectedItem().toString());
+            surat.setBagian(cb_BagianSurat.getSelectedItem().toString());
+            surat.setAsal_surat(tf_asal.getText());
+            surat.setPerihal(tf_Perihal.getText());
+            java.util.Date tanggalDiterima = tTanggalDiterima.getDate();
+
+            if (tanggalDiterima != null) {
+                java.sql.Date sqlDate = new java.sql.Date(tanggalDiterima.getTime());
+                surat.setTanggal_diterima(sqlDate);
+            } else {
+                System.out.println("Tanggal diterima tidak boleh kosong");
+            }
+
+            surat.setFile_data(txtfilepath.getText());
+
+            surat.ubahSurat();
+
+        } catch (SQLException sQLException) {
+            System.out.println("Data tidak masuk");
+        }
+
+        dispose();
+
+        MenuUtama.pn_Utama.removeAll();
+        MenuUtama.pn_Utama.add(new MenuSuratMasuk());
+        MenuUtama.pn_Utama.repaint();
+        MenuUtama.pn_Utama.revalidate();
+
+    }//GEN-LAST:event_bEditActionPerformed
+
+    private void bHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bHapusActionPerformed
+      try {
+           SuratMasuk sur = new SuratMasuk();
+            sur.setId_surat((tf_id.getText()));
+            sur.hapusSurat();
+        } catch (SQLException sQLException) {
+        }
+        
+        dispose();
+        MenuUtama.pn_Utama.removeAll();
+        MenuUtama.pn_Utama.add(new MenuSuratMasuk());
+        MenuUtama.pn_Utama.repaint();
+        MenuUtama.pn_Utama.revalidate();
+    }//GEN-LAST:event_bHapusActionPerformed
 
     /**
      * @param args the command line arguments
@@ -113,10 +588,7 @@ public class PopUpSuratMasuk extends javax.swing.JFrame {
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
+
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -127,8 +599,29 @@ public class PopUpSuratMasuk extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton bt_Close;
+    private javax.swing.JButton bClose;
+    public javax.swing.JButton bEdit;
+    private javax.swing.JButton bHapus;
+    private javax.swing.JButton bOPen;
+    public javax.swing.JButton bTambah;
+    private javax.swing.JButton bUpload;
+    private javax.swing.JButton bt_Batal;
+    public javax.swing.JComboBox<String> cb_BagianSurat;
+    public javax.swing.JComboBox<String> cb_Kategori;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JPanel pn_SuratMasuk;
+    public com.toedter.calendar.JDateChooser tTanggalDiterima;
+    public javax.swing.JTextField tf_Perihal;
+    public javax.swing.JTextField tf_asal;
+    private javax.swing.JTextField tf_id;
+    public javax.swing.JTextField txtfilepath;
     // End of variables declaration//GEN-END:variables
 }
