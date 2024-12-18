@@ -70,7 +70,7 @@ public class SuratMasuk {
     }
 
     public static void setPerihal(String perihal) {
-        SuratMasuk.perihal = perihal;
+        SuratMasuk.perihal = perihal; 
     }
 
     public static String getFile_data() {
