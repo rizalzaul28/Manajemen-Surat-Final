@@ -9,14 +9,17 @@ import Kelas.Kategori;
 import Kelas.SuratKeluar;
 import Kelas.TimedJOptionPane;
 import Main.MenuSuratKeluar;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -38,6 +41,7 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
         initComponents();
         this.sk = srtkel;
 
+        tf_Tgl.setDate(new Date());
         cbBagianSurat();
         cbKategoriSurat();
 
@@ -80,12 +84,24 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
         SuratKeluar surat = new SuratKeluar();
         String noSurat = surat.getNoSurat(selectedKategori, selectedBagian);
 
+        // Ambil tanggal dari JDateChooser (tf_Tgl sebenarnya adalah JDateChooser)
+        Date tanggal = tf_Tgl.getDate();  // tf_Tgl adalah JDateChooser
+
+        if (tanggal == null) {
+            JOptionPane.showMessageDialog(null, "Harap pilih tanggal.");
+            return;
+        }
+
+        // Gunakan Calendar untuk mengekstrak bulan dan tahun
         Calendar calendar = Calendar.getInstance();
-        int bulan = calendar.get(Calendar.MONTH) + 1;
+        calendar.setTime(tanggal);  // Set tanggal yang dipilih dari JDateChooser
+        int bulan = calendar.get(Calendar.MONTH) + 1;  // Bulan mulai dari 0, jadi tambahkan 1
         int tahun = calendar.get(Calendar.YEAR);
 
-        String bulanRomawi = getBulanRomawi(bulan);
+        // Konversi bulan ke dalam format Romawi
+        String bulanRomawi = surat.getBulanRomawi(bulan);
 
+        // Format nomor urut surat
         String formattedNoUrut = String.format("%s.%s/%s/%s/%d",
                 selectedKategori,
                 noSurat,
@@ -94,12 +110,8 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
                 tahun
         );
 
+        // Set nomor surat ke text field
         tf_NoSurat.setText(formattedNoUrut);
-    }
-
-    public String getBulanRomawi(int bulan) {
-        String[] bulanRomawi = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"};
-        return bulanRomawi[bulan - 1];
     }
 
     void cbKategoriSurat() {
@@ -137,14 +149,6 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
         }
     }
 
-    private String getFileExtension(String fileName) {
-        int lastDotIndex = fileName.lastIndexOf(".");
-        if (lastDotIndex > 0 && lastDotIndex < fileName.length() - 1) {
-            return fileName.substring(lastDotIndex);
-        }
-        return "";
-    }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -176,14 +180,18 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
         bt_Ubah = new javax.swing.JButton();
         bt_Hapus = new javax.swing.JButton();
         bt_Close = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setUndecorated(true);
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
         jLabel1.setFont(new java.awt.Font("Georgia", 1, 24)); // NOI18N
         jLabel1.setText("Form Tambah Surat Keluar");
 
+        lb_Id.setBackground(new java.awt.Color(255, 255, 255));
+        lb_Id.setForeground(new java.awt.Color(255, 255, 255));
         lb_Id.setText("0");
 
         jLabel2.setText("Kategori");
@@ -240,6 +248,13 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
             }
         });
 
+        jButton1.setText("Lihat Surat");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -247,14 +262,6 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(bt_Close)
-                        .addGap(32, 290, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(lb_Id))
-                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel4)
@@ -273,17 +280,25 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
                             .addComponent(bt_Upload))
                         .addGap(18, 18, 18)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(tf_Tgl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(tf_Perihal)
+                            .addComponent(tf_Tujuan)
+                            .addComponent(tf_File)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(bt_Tambah)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(bt_Ubah)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(bt_Hapus)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(tf_Tgl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(tf_Perihal)
-                            .addComponent(tf_Tujuan)
-                            .addComponent(tf_File))))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton1)
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(bt_Close)
+                            .addComponent(jLabel1)
+                            .addComponent(lb_Id))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(bt_Salin)
                 .addGap(118, 118, 118))
@@ -328,7 +343,8 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bt_Tambah)
                     .addComponent(bt_Ubah)
-                    .addComponent(bt_Hapus))
+                    .addComponent(bt_Hapus)
+                    .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 199, Short.MAX_VALUE)
                 .addComponent(bt_Close)
                 .addContainerGap())
@@ -345,7 +361,7 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        setSize(new java.awt.Dimension(586, 573));
+        setSize(new java.awt.Dimension(570, 565));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -411,7 +427,7 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
             File file = new File(tf_File.getText());
             if (file.exists()) {
                 FileInputStream fis = new FileInputStream(file);
-                String fileExtension = (file.getName());
+                String fileExtension = kodetambah.getFileExtension(file.getName());
                 String formattedNamaFile = nomorSurat.replace(".", "_").replace("/", "_") + fileExtension;
                 kodetambah.setFile(fis);
                 kodetambah.setNama_file(formattedNamaFile);
@@ -486,7 +502,7 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
                 }
 
                 // Ambil ekstensi file baru
-                String fileExtension = getFileExtension(file.getName());
+                String fileExtension = kodeUbah.getFileExtension(file.getName());
 
                 // Gabungkan nama file lama dengan ekstensi file baru
                 String namaFileBaru = namaFileLama + "." + fileExtension;
@@ -552,34 +568,40 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
         int result = chooser.showOpenDialog(this);
 
         if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = chooser.getSelectedFile();
-
-            String targetFolderPath = "File/FileSuratKeluar";
-            File targetFolder = new File(targetFolderPath);
-
-            if (!targetFolder.exists()) {
-                if (!targetFolder.mkdirs()) {
-                    System.out.println("Gagal membuat folder FileSurat!");
-                    return;
-                }
-            }
-
-            String fileBaseName = tf_NoSurat.getText().replace(".", "_").replace("/", "_");
-            String fileExtension = getFileExtension(selectedFile.getName());
-
-            File targetFile = new File(targetFolderPath, fileBaseName + fileExtension);
-            int count = 1;
-            while (targetFile.exists()) {
-                targetFile = new File(targetFolderPath, fileBaseName + "(" + count + ")" + fileExtension);
-                count++;
-            }
-
             try {
-                Files.copy(selectedFile.toPath(), targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                tf_File.setText(targetFile.getAbsolutePath());
-            } catch (IOException e) {
-                TimedJOptionPane timedPane = new TimedJOptionPane();
-                timedPane.showTimedMessage("Gagal mengunggah file", null, JOptionPane.ERROR_MESSAGE, 1000);
+                File selectedFile = chooser.getSelectedFile();
+                
+                String targetFolderPath = "File/FileSuratKeluar";
+                File targetFolder = new File(targetFolderPath);
+                
+                if (!targetFolder.exists()) {
+                    if (!targetFolder.mkdirs()) {
+                        System.out.println("Gagal membuat folder FileSurat!");
+                        return;
+                    }
+                }
+                
+                String fileBaseName = tf_NoSurat.getText().replace(".", "_").replace("/", "_");
+                
+                SuratKeluar kodeUpload = new SuratKeluar();
+                String fileExtension = kodeUpload.getFileExtension(selectedFile.getName());
+                
+                File targetFile = new File(targetFolderPath, fileBaseName + fileExtension);
+                int count = 1;
+                while (targetFile.exists()) {
+                    targetFile = new File(targetFolderPath, fileBaseName + "(" + count + ")" + fileExtension);
+                    count++;
+                }
+                
+                try {
+                    Files.copy(selectedFile.toPath(), targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    tf_File.setText(targetFile.getAbsolutePath());
+                } catch (IOException e) {
+                    TimedJOptionPane timedPane = new TimedJOptionPane();
+                    timedPane.showTimedMessage("Gagal mengunggah file", null, JOptionPane.ERROR_MESSAGE, 1000);
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(PopUpSuratKeluar.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }//GEN-LAST:event_bt_UploadActionPerformed
@@ -603,6 +625,38 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
             javax.swing.JOptionPane.showMessageDialog(this, "Gagal menyalin teks.", "Kesalahan", javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_bt_SalinActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        try {
+            String namaFile = tf_File.getText();
+            if (namaFile == null || namaFile.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nama file tidak tersedia.", "Kesalahan", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            SuratKeluar suratKeluar = new SuratKeluar();
+            suratKeluar.setNama_file(namaFile);
+            byte[] fileData = suratKeluar.BukaFile();
+
+            if (fileData != null) {
+                File tempFile = new File(System.getProperty("java.io.tmpdir") + "/" + namaFile);
+                FileOutputStream fos = new FileOutputStream(tempFile);
+                fos.write(fileData);
+                fos.close();
+
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(tempFile);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Desktop tidak didukung pada sistem ini.", "Kesalahan", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "File tidak ditemukan untuk surat ini.", "Informasi", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat membuka file: " + e.getMessage(), "Kesalahan", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -656,6 +710,7 @@ public class PopUpSuratKeluar extends javax.swing.JDialog {
     private javax.swing.JButton bt_Upload;
     public static javax.swing.JComboBox<String> cb_Bagian;
     public static javax.swing.JComboBox<String> cb_Kategori;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

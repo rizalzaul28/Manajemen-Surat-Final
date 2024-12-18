@@ -4,6 +4,14 @@
  */
 package Main;
 
+import Kelas.Bagian;
+import Kelas.Kategori;
+import Kelas.SuratKeluar;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import kelas.SuratMasuk;
+
 /**
  *
  * @author rizan
@@ -15,6 +23,58 @@ public class MenuDashboard extends javax.swing.JPanel {
      */
     public MenuDashboard() {
         initComponents();
+        tampilJumlahKategoriSurat();
+        tampilJumlahBagianSurat();
+        tampilJumlahSuratKeluar();
+        tampilJumlahSuratMasuk();
+    }
+
+    void tampilJumlahKategoriSurat() {
+        try {
+            Kategori jumKategori = new Kategori();
+            int jumlahKode = jumKategori.TampilJumlahKategori();
+
+            lb_Kategori.setText(String.valueOf(jumlahKode));
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDashboard.class.getName()).log(Level.SEVERE, null, ex);
+            lb_Kategori.setText("Error");
+        }
+    }
+
+    void tampilJumlahBagianSurat() {
+        try {
+            Bagian jumBagian = new Bagian();
+            int jumlahKode = jumBagian.TampilJumlahBagian();
+
+            lb_Bagian.setText(String.valueOf(jumlahKode));
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDashboard.class.getName()).log(Level.SEVERE, null, ex);
+            lb_Bagian.setText("Error");
+        }
+    }
+
+    void tampilJumlahSuratKeluar() {
+        try {
+            SuratKeluar jumSuKel = new SuratKeluar();
+            int jumlahKode = jumSuKel.TampilJumlahBagian();
+
+            lb_SuratKeluar.setText(String.valueOf(jumlahKode));
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDashboard.class.getName()).log(Level.SEVERE, null, ex);
+            lb_SuratKeluar.setText("Error");
+        }
+    }
+
+    void tampilJumlahSuratMasuk() {
+        try {
+            SuratMasuk jumSuMa = new SuratMasuk();
+            int jumlahKode = jumSuMa.TampilJumlahBagian();
+
+            lb_SuratMasuk.setText(String.valueOf(jumlahKode));
+        } catch (SQLException ex) {
+            Logger.getLogger(MenuDashboard.class.getName()).log(Level.SEVERE, null, ex);
+            lb_SuratMasuk.setText("Error");
+        }
     }
 
     /**

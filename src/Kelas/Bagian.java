@@ -19,7 +19,7 @@ import javax.swing.JOptionPane;
  */
 public class Bagian {
 
-    int id_bgn;
+    int id_bgn, jumlah = 0;
     String kode, nama;
 
     private Connection conn;
@@ -195,6 +195,28 @@ public class Bagian {
         }
 
         return newID;
+    }
+
+    // Method untuk menampilkan jumlah Bagian
+    public int TampilJumlahBagian() {
+        query = "SELECT COUNT(*) AS jumlah FROM bagian";
+
+        try {
+            st = conn.createStatement();
+            rs = st.executeQuery(query);
+
+            if (rs.next()) {
+                jumlah = rs.getInt("jumlah");
+            }
+
+            rs.close();
+            st.close();
+        } catch (SQLException sQLException) {
+            JOptionPane.showMessageDialog(null, "Data gagal ditampilkan: " + sQLException.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return jumlah;
     }
 
 }

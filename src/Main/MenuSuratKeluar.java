@@ -495,7 +495,7 @@ public class MenuSuratKeluar extends javax.swing.JPanel implements SuratKeluar.P
 
                 for (int i = 0; i < cb_Kategori.getItemCount(); i++) {
                     String item = cb_Kategori.getItemAt(i);
-                    if (item.startsWith(Kategori + " -")) {
+                    if (item.startsWith(Kategori + "-")) {
                         cb_Kategori.setSelectedIndex(i);
                         break;
                     }

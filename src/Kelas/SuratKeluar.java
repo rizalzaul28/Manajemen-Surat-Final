@@ -21,7 +21,7 @@ import javax.swing.JOptionPane;
  */
 public class SuratKeluar {
 
-    int id_srtkeluar;
+    int id_srtkeluar, jumlah = 0;
     String kategori, bagian, no_srt, perihal, tujuan, nama_file;
     java.sql.Date tgl_dibuat;
     FileInputStream file;
@@ -402,5 +402,40 @@ public class SuratKeluar {
         return IsiFile;
 
     }
+    
+    // Method untuk menampilkan jumlah Surat Keluar
+    public int TampilJumlahBagian() {
+        query = "SELECT COUNT(*) AS jumlah FROM surat_keluar";
 
+        try {
+            st = conn.createStatement();
+            rs = st.executeQuery(query);
+
+            if (rs.next()) {
+                jumlah = rs.getInt("jumlah");
+            }
+
+            rs.close();
+            st.close();
+        } catch (SQLException sQLException) {
+            JOptionPane.showMessageDialog(null, "Data gagal ditampilkan: " + sQLException.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return jumlah;
+    }
+    
+    public String getBulanRomawi(int bulan) {
+        String[] bulanRomawi = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"};
+        return bulanRomawi[bulan - 1];
+    }
+
+    public String getFileExtension(String fileName) {
+        int lastDotIndex = fileName.lastIndexOf(".");
+        if (lastDotIndex > 0 && lastDotIndex < fileName.length() - 1) {
+            return fileName.substring(lastDotIndex);
+        }
+        return "";
+    }
+    
 }

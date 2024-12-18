@@ -12,8 +12,6 @@ import javax.swing.JOptionPane;
 import kelas.SuratMasuk;
 
 import Main.MenuSuratMasuk;
-import static PopUp.PopUpSuratKeluar.cb_Bagian;
-import static PopUp.PopUpSuratKeluar.cb_Kategori;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -29,7 +27,7 @@ import java.util.Date;
  *
  * @author rizan
  */
-public class PopUpSuratMasuk extends javax.swing.JFrame {
+public class PopUpSuratMasuk extends javax.swing.JDialog{
 
     String judul;
 
@@ -163,7 +161,7 @@ public class PopUpSuratMasuk extends javax.swing.JFrame {
         tf_id.setBackground(new java.awt.Color(242, 242, 242));
         tf_id.setForeground(new java.awt.Color(242, 242, 242));
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         pn_SuratMasuk.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -176,6 +174,8 @@ public class PopUpSuratMasuk extends javax.swing.JFrame {
                 bt_BatalActionPerformed(evt);
             }
         });
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI Semibold", 1, 18)); // NOI18N
         jLabel1.setText("Surat Masuk");
@@ -395,7 +395,7 @@ public class PopUpSuratMasuk extends javax.swing.JFrame {
                 String justFileName = selectedFile.getName();
                 String newName = timestamp + "_" + justFileName;
 
-                String destinationPath = "./Upload/surat/";
+                String destinationPath = "./Upload/FileSuratMasuk/";
                 txtfilepath.setText(destinationPath + newName);
 
                 File destinationDirectory = new File(destinationPath);

@@ -17,6 +17,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class SuratMasuk {
 
+    int jumlah = 0;
     public static String id_surat, kategori, bagian, asal_surat, perihal, file_data;
 
     public static java.sql.Date tanggal_diterima;
@@ -210,46 +211,7 @@ public class SuratMasuk {
         }
     }
 
-    public static void getDataDetail(DefaultTableModel model, String id_surat, Connection konek) {
-        model.setRowCount(0);
-        String sql = "SELECT id_surat, kategori, bagian, asal_surat, perihal, tanggal_diterima, file_data "
-                + "FROM surat_masuk WHERE id_surat = ?";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-
-        try {
-            ps = konek.prepareStatement(sql);
-            ps.setString(1, id_surat);
-            rs = ps.executeQuery();
-
-            while (rs.next()) {
-                String id = rs.getString("id_surat");
-                String kategori = rs.getString("kategori");
-                String bagian = rs.getString("bagian");
-                String asalsurat = rs.getString("asal_surat");
-                String perihal = rs.getString("perihal");
-                String tanggalDiterima = rs.getString("tanggal_diterima");
-                String fileData = rs.getString("file_data");
-
-                model.addRow(new Object[]{id, kategori, bagian, asalsurat, perihal, tanggalDiterima, fileData});
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Failed to retrieve data");
-            Logger.getLogger(SuratMasuk.class.getName()).log(Level.SEVERE, null, e);
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (ps != null) {
-                    ps.close();
-                }
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(null, "Error on closing the connection");
-                Logger.getLogger(SuratMasuk.class.getName()).log(Level.SEVERE, null, e);
-            }
-        }
-    }
+  
 
     public String otoID() {
         // Menggunakan LocalDate untuk mendapatkan tanggal saat ini dalam format yyyyMMdd
@@ -278,29 +240,115 @@ public class SuratMasuk {
         }
     }
 
-//    public static String uploadSurat(File selectedFile, Date date) {
-//        try {
-//            if (selectedFile != null) {
-//                String filepath = selectedFile.getAbsolutePath().replace('\\', '/');
-//                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-//                String timestamp = sdf.format(date);
-//                String justFileName = selectedFile.getName();
-//                String newName = timestamp + "_" + justFileName;
-//
-//                File destinationDirectory = new File(destinationPath);
-//                if (!destinationDirectory.exists()) {
-//                    destinationDirectory.mkdirs();
-//                }
-//
-//                File destinationFile = new File(destinationDirectory, newName);
-//                Files.copy(selectedFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-//
-//                return destinationPath + newName; // Return the new file path
-//            } else {
-//                return "No file was selected";
-//            }
-//        } catch (IOException e) {
-//            return "Failed to copy file: " + e.getMessage();
-//        }
-//    }
+    
+      // Method untuk menggabungkan filter
+    public ResultSet KodeTampilByFilters(String filterKategori, String filterBagian, java.sql.Date filterTanggal) {
+        try {
+            StringBuilder queryBuilder = new StringBuilder("SELECT id_surat, kategori, Bagian, asal_surat, perihal, tanggal_diterima FROM surat_masuk WHERE 1=1");
+
+            if (filterKategori != null && !filterKategori.isEmpty()) {
+                queryBuilder.append(" AND kategori = ?");
+            }
+            if (filterBagian != null && !filterBagian.isEmpty()) {
+                queryBuilder.append(" AND bagian = ?");
+            }
+            if (filterTanggal != null) {
+                queryBuilder.append(" AND tanggal_diterima = ?");
+            }
+
+            PreparedStatement ps = konek.prepareStatement(queryBuilder.toString());
+
+            int index = 1;
+            if (filterKategori != null && !filterKategori.isEmpty()) {
+                ps.setString(index++, filterKategori);
+            }
+            if (filterBagian != null && !filterBagian.isEmpty()) {
+                ps.setString(index++, filterBagian);
+            }
+            if (filterTanggal != null) {
+                ps.setDate(index++, filterTanggal);
+            }
+
+            rs = ps.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rs;
+    }
+
+    // Method untuk memfilter data berdasarkan Kategori
+    public ResultSet KodeTampilByKategori(String filterKategori) {
+        try {
+            if (filterKategori == null || filterKategori.isEmpty()) {
+                query = "SELECT id_surat, kategori, Bagian, asal_surat, perihal, tanggal_diterima FROM surat_masuk";
+                PreparedStatement ps = konek.prepareStatement(query);
+                rs = ps.executeQuery();
+            } else {
+                query = "SELECT id_surat, kategori, Bagian, asal_surat, perihal, tanggal_diterima FROM suratkeluar WHERE kategori = ?";
+                PreparedStatement ps = konek.prepareStatement(query);
+                ps.setString(1, filterKategori);
+                rs = ps.executeQuery();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rs;
+    }
+
+    // Method untuk memfilter data berdasarkan Bagian
+    public ResultSet KodeTampilByBagian(String filterBagian) {
+        try {
+            if (filterBagian == null || filterBagian.isEmpty()) {
+                // Query tanpa filter
+                query = "SELECT iid_surat, kategori, Bagian, asal_surat, perihal, tanggal_diterima FROM surat_masuk";
+                PreparedStatement ps = konek.prepareStatement(query);
+                rs = ps.executeQuery();
+            } else {
+                // Query dengan filter bagian
+                query = "SELECT id_surat, kategori, Bagian, asal_surat, perihal, tanggal_diterima FROM suratkeluar WHERE bagian = ?";
+                PreparedStatement ps = konek.prepareStatement(query);
+                ps.setString(1, filterBagian);
+                rs = ps.executeQuery();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rs;
+    }
+
+    // Method untuk memfilter data berdasarkan Tanggal
+    public ResultSet KodeTampilByTanggal(java.sql.Date tanggal) {
+        try {
+            query = "SELECT id_surat, kategori, Bagian, asal_surat, perihal, tanggal_diterima FROM surat_masuk WHERE tanggal_diterima = ?";
+            PreparedStatement ps = konek.prepareStatement(query);
+            ps.setDate(1, tanggal);
+            rs = ps.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rs;
+    }
+    
+    // Method untuk menampilkan jumlah Surat Masuk
+    public int TampilJumlahBagian() {
+        query = "SELECT COUNT(*) AS jumlah FROM surat_masuk";
+
+        try {
+            st = konek.createStatement();
+            rs = st.executeQuery(query);
+
+            if (rs.next()) {
+                jumlah = rs.getInt("jumlah");
+            }
+
+            rs.close();
+            st.close();
+        } catch (SQLException sQLException) {
+            JOptionPane.showMessageDialog(null, "Data gagal ditampilkan: " + sQLException.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return jumlah;
+    }
+
 }

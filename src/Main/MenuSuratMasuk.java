@@ -4,6 +4,9 @@
  */
 package Main;
 
+import Kelas.Bagian;
+import Kelas.Kategori;
+import Kelas.SuratKeluar;
 import Main.MenuUtama;
 import java.awt.Desktop;
 import java.io.File;
@@ -22,21 +25,30 @@ import java.util.Locale;
 
 public class MenuSuratMasuk extends javax.swing.JPanel {
 
-
-
     public MenuSuratMasuk() {
         initComponents();
         loadTabel();
 
+        cbBagianSurat();
+        cbKategoriSurat();
+
+        cb_KategoriMenu.addActionListener(evt -> applyFilters());
+        cb_BagianMenu.addActionListener(evt -> applyFilters());
+        tf_TglMenu.addPropertyChangeListener(evt -> {
+            if ("date".equals(evt.getPropertyName())) {
+                applyFilters();
+            }
+        });
+
     }
 
     public void setModel(DefaultTableModel model) {
-        tbSuratMasuk.setModel(model);
+        tb_SuratMasuk.setModel(model);
     }
 
     void loadTabel() {
         DefaultTableModel model = new DefaultTableModel();
-       model.addColumn(null);
+        model.addColumn(null);
         model.addColumn("Kategori");
         model.addColumn("Bagian");
         model.addColumn("Asal Surat");
@@ -63,12 +75,245 @@ public class MenuSuratMasuk extends javax.swing.JPanel {
         } catch (SQLException sQLException) {
         }
 
-        tbSuratMasuk.setModel(model);
-         tbSuratMasuk.getColumnModel().getColumn(0).setMinWidth(0);
-        tbSuratMasuk.getColumnModel().getColumn(0).setMaxWidth(0);
-        tbSuratMasuk.getColumnModel().getColumn(0).setWidth(0);
+        tb_SuratMasuk.setModel(model);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setMinWidth(0);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setMaxWidth(0);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setWidth(0);
+    }
 
+    void cbKategoriSurat() {
+        try {
+            cb_KategoriMenu.addItem("--Pilih Kategori Surat--");
 
+            Kategori ks = new Kategori();
+            ResultSet data = ks.Tampil_CbKategoriSurat();
+
+            while (data.next()) {
+                cb_KategoriMenu.addItem(data.getString("kode") + " - " + data.getString("nama"));
+            }
+
+            cb_KategoriMenu.setSelectedItem("--Pilih Kategori Surat--");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    void cbBagianSurat() {
+        try {
+            cb_BagianMenu.addItem("--Pilih Bagian Surat--");
+
+            Bagian bg = new Bagian();
+            ResultSet data = bg.Tampil_CbBagianSurat();
+
+            while (data.next()) {
+                cb_BagianMenu.addItem(data.getString("kode") + " - " + data.getString("nama"));
+            }
+
+            cb_BagianMenu.setSelectedItem("--Pilih Bagian Surat--"); // Pilih default option
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void applyFilters() {
+        String selectedKategori = cb_KategoriMenu.getSelectedItem().toString();
+        String selectedBagian = cb_BagianMenu.getSelectedItem().toString();
+        java.util.Date selectedDate = tf_TglMenu.getDate();
+
+        String filterKategori = null;
+        String filterBagian = null;
+        java.sql.Date filterTanggal = null;
+
+        if (!selectedKategori.equals("--Pilih Kategori Surat--")) {
+            filterKategori = selectedKategori.split(" - ")[0];
+        }
+
+        if (!selectedBagian.equals("--Pilih Bagian Surat--")) {
+            filterBagian = selectedBagian.split(" - ")[0];
+        }
+
+        if (selectedDate != null) {
+            filterTanggal = new java.sql.Date(selectedDate.getTime());
+        }
+
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn(null);
+        model.addColumn("Kategori");
+        model.addColumn("Bagian");
+        model.addColumn("Asal Surat");
+        model.addColumn("Perihal");
+        model.addColumn("Tanggal Diterima");
+        model.addColumn("File Surat");
+
+        try {
+            SuratMasuk bg = new SuratMasuk();
+            ResultSet data = bg.KodeTampilByFilters(filterKategori, filterBagian, filterTanggal);
+
+            while (data.next()) {
+                model.addRow(new Object[]{
+                    data.getString("id_surat"),
+                    data.getString("kategori"),
+                    data.getString("bagian"),
+                    data.getString("asal_surat"),
+                    data.getString("perihal"),
+                    data.getString("tanggal_diterima"),
+                    data.getString("file_data"),});
+            }
+
+            data.close();
+        } catch (SQLException sQLException) {
+            sQLException.printStackTrace();
+        }
+
+        tb_SuratMasuk.setModel(model);
+
+        tb_SuratMasuk.getColumnModel().getColumn(0).setMinWidth(0);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setMaxWidth(0);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setWidth(0);
+    }
+
+    private void filterTabelByKategori() {
+        String selectedKategori = cb_KategoriMenu.getSelectedItem().toString();
+        if (selectedKategori.equals("--Pilih Kategori Surat--")) {
+            loadTabel();
+            return;
+        }
+
+        String kodeKategori = selectedKategori.split(" - ")[0]; // Ambil kode kategori
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn(null);
+        model.addColumn("Kategori");
+        model.addColumn("Bagian");
+        model.addColumn("Asal Surat");
+        model.addColumn("Perihal");
+        model.addColumn("Tanggal Diterima");
+        model.addColumn("File Surat");
+
+        try {
+            SuratKeluar bg = new SuratKeluar();
+            ResultSet data = bg.KodeTampilByKategori(kodeKategori);
+
+            while (data.next()) {
+                if (data.getString("kategori").equals(kodeKategori)) {
+                    model.addRow(new Object[]{
+                        data.getString("id_surat"),
+                        data.getString("kategori"),
+                        data.getString("bagian"),
+                        data.getString("asal_surat"),
+                        data.getString("perihal"),
+                        data.getString("tanggal_diterima"),
+                        data.getString("file_data"),});
+                }
+            }
+
+            data.close();
+        } catch (SQLException sQLException) {
+            sQLException.printStackTrace();
+        }
+
+        tb_SuratMasuk.setModel(model);
+
+        tb_SuratMasuk.getColumnModel().getColumn(0).setMinWidth(0);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setMaxWidth(0);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setWidth(0);
+    }
+
+    private void filterTabelByBagian() {
+        String selectedBagian = cb_BagianMenu.getSelectedItem().toString();
+
+        if (selectedBagian.equals("--Pilih Bagian Surat--")) {
+            loadTabel();
+        } else {
+            String filterBagian = selectedBagian.split(" - ")[0];
+            DefaultTableModel model = new DefaultTableModel();
+            model.addColumn(null);
+            model.addColumn("Kategori");
+            model.addColumn("Bagian");
+            model.addColumn("Asal Surat");
+            model.addColumn("Perihal");
+            model.addColumn("Tanggal Diterima");
+            model.addColumn("File Surat");
+            try {
+                SuratKeluar bg = new SuratKeluar();
+                ResultSet data = bg.KodeTampilByBagian(filterBagian);
+
+                while (data.next()) {
+                    model.addRow(new Object[]{
+                        data.getString("id_surat"),
+                        data.getString("kategori"),
+                        data.getString("bagian"),
+                        data.getString("asal_surat"),
+                        data.getString("perihal"),
+                        data.getString("tanggal_diterima"),
+                        data.getString("file_data"),});
+                }
+
+                data.close();
+            } catch (SQLException sQLException) {
+                sQLException.printStackTrace();
+            }
+
+            tb_SuratMasuk.setModel(model);
+
+            tb_SuratMasuk.getColumnModel().getColumn(0).setMinWidth(0);
+            tb_SuratMasuk.getColumnModel().getColumn(0).setMaxWidth(0);
+            tb_SuratMasuk.getColumnModel().getColumn(0).setWidth(0);
+        }
+    }
+
+    private void tf_TglPropertyChange(java.beans.PropertyChangeEvent evt) {
+        if ("date".equals(evt.getPropertyName())) {
+            java.util.Date selectedDate = tf_TglMenu.getDate();
+            if (selectedDate != null) {
+                filterTabelByTanggal(selectedDate);
+            } else {
+                filterTabelByKategori();
+                filterTabelByBagian();
+                loadTabel();
+            }
+        }
+    }
+
+    private void filterTabelByTanggal(java.util.Date tanggal) {
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn(null);
+        model.addColumn("Kategori");
+        model.addColumn("Bagian");
+        model.addColumn("Asal Surat");
+        model.addColumn("Perihal");
+        model.addColumn("Tanggal Diterima");
+        model.addColumn("File Surat");
+        try {
+            java.sql.Date sqlDate = new java.sql.Date(tanggal.getTime());
+            SuratKeluar bg = new SuratKeluar();
+            ResultSet data = bg.KodeTampilByTanggal(sqlDate);
+
+            while (data.next()) {
+                model.addRow(new Object[]{
+                     data.getString("id_surat"),
+                    data.getString("kategori"),
+                    data.getString("bagian"),
+                    data.getString("asal_surat"),
+                    data.getString("perihal"),
+                    data.getString("tanggal_diterima"),
+                    data.getString("file_data"),});
+            }
+
+            data.close();
+        } catch (SQLException sQLException) {
+            sQLException.printStackTrace();
+        }
+
+        tb_SuratMasuk.setModel(model);
+
+        tb_SuratMasuk.getColumnModel().getColumn(0).setMinWidth(0);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setMaxWidth(0);
+        tb_SuratMasuk.getColumnModel().getColumn(0).setWidth(0);
+    }
+
+    void resetTgl() {
+        tf_TglMenu.setDate(null);
     }
 
     @SuppressWarnings("unchecked")
@@ -78,55 +323,22 @@ public class MenuSuratMasuk extends javax.swing.JPanel {
         pnMain = new javax.swing.JPanel();
         pn1 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        tbSuratMasuk = new javax.swing.JTable();
+        tb_SuratMasuk = new javax.swing.JTable();
         bTambah = new javax.swing.JButton();
-        jLabel10 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
         jLabel11 = new javax.swing.JLabel();
-        jTextField9 = new javax.swing.JTextField();
-        bDetail = new javax.swing.JButton();
-        pnDetail = new javax.swing.JPanel();
+        cb_KategoriMenu = new javax.swing.JComboBox<>();
+        jLabel15 = new javax.swing.JLabel();
+        cb_BagianMenu = new javax.swing.JComboBox<>();
+        tf_TglMenu = new com.toedter.calendar.JDateChooser();
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        bpn2Kembali = new javax.swing.JButton();
-        jLabel12 = new javax.swing.JLabel();
-        bOpen = new javax.swing.JButton();
-        tId = new javax.swing.JLabel();
-        tdJudul = new javax.swing.JLabel();
-        tdPerihal = new javax.swing.JLabel();
-        tdNoSurat = new javax.swing.JLabel();
-        tdAsalSurat = new javax.swing.JLabel();
-        tdTujuan = new javax.swing.JLabel();
-        tdTanggalDIterima = new javax.swing.JLabel();
-        tdJenisSurat = new javax.swing.JLabel();
-        tdKeterangan = new javax.swing.JLabel();
-        tdFile = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
-        jLabel14 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
-        jLabel17 = new javax.swing.JLabel();
-        jLabel18 = new javax.swing.JLabel();
-        jLabel19 = new javax.swing.JLabel();
-        jLabel20 = new javax.swing.JLabel();
-        jLabel21 = new javax.swing.JLabel();
-        jLabel22 = new javax.swing.JLabel();
-        bEdit = new javax.swing.JButton();
-        jLabel23 = new javax.swing.JLabel();
-        bHapus = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
 
         setLayout(new java.awt.CardLayout());
 
         pnMain.setBackground(new java.awt.Color(255, 255, 255));
         pnMain.setLayout(new java.awt.CardLayout());
 
-        tbSuratMasuk.setModel(new javax.swing.table.DefaultTableModel(
+        tb_SuratMasuk.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -137,15 +349,15 @@ public class MenuSuratMasuk extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        tbSuratMasuk.addMouseListener(new java.awt.event.MouseAdapter() {
+        tb_SuratMasuk.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tbSuratMasukMouseClicked(evt);
+                tb_SuratMasukMouseClicked(evt);
             }
             public void mousePressed(java.awt.event.MouseEvent evt) {
-                tbSuratMasukMousePressed(evt);
+                tb_SuratMasukMousePressed(evt);
             }
         });
-        jScrollPane2.setViewportView(tbSuratMasuk);
+        jScrollPane2.setViewportView(tb_SuratMasuk);
 
         bTambah.setBackground(new java.awt.Color(0, 0, 255));
         bTambah.setFont(new java.awt.Font("Segoe UI Semibold", 1, 14)); // NOI18N
@@ -157,305 +369,74 @@ public class MenuSuratMasuk extends javax.swing.JPanel {
             }
         });
 
-        jLabel10.setText("Divisi");
+        jLabel11.setText("Kategori");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ITM", "SI", "PTI", "TI" }));
+        jLabel15.setText("Bagian");
 
-        jLabel11.setText("Cari");
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        jLabel1.setText("Menu Surat Masuk");
 
-        bDetail.setText("Detail");
-        bDetail.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bDetailActionPerformed(evt);
-            }
-        });
+        jButton1.setText("Reset Tanggal");
 
         javax.swing.GroupLayout pn1Layout = new javax.swing.GroupLayout(pn1);
         pn1.setLayout(pn1Layout);
         pn1Layout.setHorizontalGroup(
             pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pn1Layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pn1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 1054, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pn1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(122, 122, 122))))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pn1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(bTambah)
+                        .addContainerGap()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 1054, Short.MAX_VALUE))
+                    .addGroup(pn1Layout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addGroup(pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addComponent(bTambah)
+                            .addGroup(pn1Layout.createSequentialGroup()
+                                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(cb_KategoriMenu, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(27, 27, 27)
+                                .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(cb_BagianMenu, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(30, 30, 30)
+                                .addComponent(tf_TglMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(26, 26, 26)
+                                .addComponent(jButton1)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addGroup(pn1Layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField9, javax.swing.GroupLayout.PREFERRED_SIZE, 224, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(338, 338, 338)
-                .addComponent(bDetail)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pn1Layout.setVerticalGroup(
             pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pn1Layout.createSequentialGroup()
-                .addGap(28, 28, 28)
-                .addGroup(pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel10))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 98, Short.MAX_VALUE)
-                .addComponent(bTambah)
-                .addGap(14, 14, 14)
-                .addGroup(pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel11)
-                    .addComponent(jTextField9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bDetail))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 462, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jLabel1)
+                .addGap(53, 53, 53)
+                .addComponent(bTambah)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 59, Short.MAX_VALUE)
+                .addGroup(pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pn1Layout.createSequentialGroup()
+                        .addGroup(pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel15)
+                                .addComponent(cb_BagianMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(pn1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel11)
+                                .addComponent(cb_KategoriMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jButton1))
+                        .addGap(18, 18, 18)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 462, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tf_TglMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
         pnMain.add(pn1, "card7");
 
-        jLabel1.setText("Id Surat");
-
-        jLabel2.setText("Judul");
-
-        jLabel3.setText("Perihal");
-
-        jLabel4.setText("No.Surat");
-
-        jLabel5.setText("Asal Surat");
-
-        jLabel6.setText("Tujuan");
-
-        jLabel7.setText("Tanggal Diterima");
-
-        jLabel8.setText("Jenis Surat");
-
-        jLabel9.setText("Keterangan");
-
-        bpn2Kembali.setBackground(new java.awt.Color(204, 0, 0));
-        bpn2Kembali.setFont(new java.awt.Font("Segoe UI Semibold", 1, 14)); // NOI18N
-        bpn2Kembali.setForeground(new java.awt.Color(255, 255, 255));
-        bpn2Kembali.setText("Kembali");
-        bpn2Kembali.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bpn2KembaliActionPerformed(evt);
-            }
-        });
-
-        jLabel12.setText("File");
-
-        bOpen.setText("Open File");
-        bOpen.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bOpenActionPerformed(evt);
-            }
-        });
-
-        tId.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tId.setText("tID");
-
-        tdJudul.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tdJudul.setText("jLabel13");
-
-        tdPerihal.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tdPerihal.setText("jLabel14");
-
-        tdNoSurat.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tdNoSurat.setText("jLabel15");
-
-        tdAsalSurat.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tdAsalSurat.setText("jLabel16");
-
-        tdTujuan.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tdTujuan.setText("jLabel17");
-
-        tdTanggalDIterima.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tdTanggalDIterima.setText("jLabel18");
-
-        tdJenisSurat.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tdJenisSurat.setText("jLabel19");
-
-        tdKeterangan.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        tdKeterangan.setText("jLabel20");
-
-        tdFile.setText("jLabel13");
-
-        jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel13.setText(":");
-
-        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel14.setText(":");
-
-        jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel16.setText(":");
-
-        jLabel17.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel17.setText(":");
-
-        jLabel18.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel18.setText(":");
-
-        jLabel19.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel19.setText(":");
-
-        jLabel20.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel20.setText(":");
-
-        jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel21.setText(":");
-
-        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel22.setText(":");
-
-        bEdit.setText("EDIT");
-        bEdit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bEditActionPerformed(evt);
-            }
-        });
-
-        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jLabel23.setText(":");
-
-        bHapus.setText("Hapus");
-        bHapus.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bHapusActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout pnDetailLayout = new javax.swing.GroupLayout(pnDetail);
-        pnDetail.setLayout(pnDetailLayout);
-        pnDetailLayout.setHorizontalGroup(
-            pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnDetailLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnDetailLayout.createSequentialGroup()
-                        .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel9)
-                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel7))
-                        .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(pnDetailLayout.createSequentialGroup()
-                                .addGap(21, 21, 21)
-                                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel13)
-                                    .addComponent(jLabel14)
-                                    .addComponent(jLabel16)
-                                    .addComponent(jLabel17)
-                                    .addComponent(jLabel18)
-                                    .addComponent(jLabel19)
-                                    .addComponent(jLabel20)
-                                    .addComponent(jLabel21)))
-                            .addComponent(jLabel22, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addGap(18, 18, 18)
-                        .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(tdJudul)
-                            .addComponent(tId)
-                            .addComponent(tdPerihal)
-                            .addComponent(tdNoSurat)
-                            .addComponent(tdAsalSurat)
-                            .addComponent(tdTujuan)
-                            .addComponent(tdTanggalDIterima)
-                            .addComponent(tdJenisSurat)
-                            .addComponent(tdKeterangan)
-                            .addComponent(bOpen)))
-                    .addGroup(pnDetailLayout.createSequentialGroup()
-                        .addComponent(bpn2Kembali)
-                        .addGap(29, 29, 29)
-                        .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addGroup(pnDetailLayout.createSequentialGroup()
-                                .addComponent(jLabel23)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(tdFile))
-                            .addComponent(bEdit))
-                        .addGap(18, 18, 18)
-                        .addComponent(bHapus)))
-                .addContainerGap(788, Short.MAX_VALUE))
-        );
-        pnDetailLayout.setVerticalGroup(
-            pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnDetailLayout.createSequentialGroup()
-                .addGap(23, 23, 23)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(tId)
-                    .addComponent(jLabel13))
-                .addGap(9, 9, 9)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(tdJudul)
-                    .addComponent(jLabel14))
-                .addGap(18, 18, 18)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(tdPerihal)
-                    .addComponent(jLabel16))
-                .addGap(24, 24, 24)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(tdNoSurat)
-                    .addComponent(jLabel17))
-                .addGap(28, 28, 28)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(tdAsalSurat)
-                    .addComponent(jLabel18))
-                .addGap(26, 26, 26)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel6)
-                    .addComponent(tdTujuan)
-                    .addComponent(jLabel19))
-                .addGap(29, 29, 29)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel20)
-                    .addComponent(tdTanggalDIterima))
-                .addGap(26, 26, 26)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel8)
-                    .addComponent(tdJenisSurat)
-                    .addComponent(jLabel21))
-                .addGap(18, 18, 18)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel9)
-                    .addComponent(tdKeterangan)
-                    .addComponent(jLabel22))
-                .addGap(75, 75, 75)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel12)
-                        .addComponent(jLabel23))
-                    .addComponent(tdFile))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(bOpen)
-                .addGap(32, 32, 32)
-                .addGroup(pnDetailLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(bpn2Kembali)
-                    .addComponent(bEdit, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bHapus)))
-        );
-
-        pnMain.add(pnDetail, "card3");
-
         add(pnMain, "card2");
     }// </editor-fold>//GEN-END:initComponents
 
-    private void tbSuratMasukMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbSuratMasukMousePressed
+    private void tb_SuratMasukMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tb_SuratMasukMousePressed
 //        pnMain.removeAll();
 //        pnMain.add(pnDetail);
 //        pnMain.repaint();
@@ -518,9 +499,7 @@ public class MenuSuratMasuk extends javax.swing.JPanel {
 //
 
 
-
-
-    }//GEN-LAST:event_tbSuratMasukMousePressed
+    }//GEN-LAST:event_tb_SuratMasukMousePressed
 
     private void bTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bTambahActionPerformed
         PopUpSuratMasuk sk = new PopUpSuratMasuk();
@@ -529,163 +508,60 @@ public class MenuSuratMasuk extends javax.swing.JPanel {
         sk.otoID();
     }//GEN-LAST:event_bTambahActionPerformed
 
-    private void bpn2KembaliActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bpn2KembaliActionPerformed
-        pnMain.removeAll();
-        pnMain.add(pn1);
-        pnMain.repaint();
-        pnMain.revalidate();
-    }//GEN-LAST:event_bpn2KembaliActionPerformed
-
-    private void bOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bOpenActionPerformed
-        try {
-            String filePath = tdFile.getText().trim();
-            File file = new File(filePath);
-
-            if (file.exists()) {
-                Desktop.getDesktop().open(file);
-            } else {
-                JOptionPane.showMessageDialog(this, "File tidak ditemukan!", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }//GEN-LAST:event_bOpenActionPerformed
-
-    private void bEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bEditActionPerformed
-       
-        
-       
-          PopUpSuratMasuk suratMasukFrame = new PopUpSuratMasuk();
+    private void tb_SuratMasukMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tb_SuratMasukMouseClicked
+        PopUpSuratMasuk suratMasukFrame = new PopUpSuratMasuk();
         suratMasukFrame.setVisible(true);
-        
+
         suratMasukFrame.bTambah.setVisible(false);
         suratMasukFrame.setLocationRelativeTo(null);
-        
+
         suratMasukFrame.ambilDetail();
-        
-        
-        
 
-    }//GEN-LAST:event_bEditActionPerformed
-
-    private void bHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bHapusActionPerformed
-         try {
-          SuratMasuk sur = new SuratMasuk();
-            sur.setId_surat((tId.getText()));
-            sur.hapusSurat();
-        } catch (SQLException sQLException) {
-        }
-        
-        
-        
-        MenuUtama.pn_Utama.removeAll();
-        MenuUtama.pn_Utama.add(new MenuSuratMasuk());
-        MenuUtama.pn_Utama.repaint();
-        MenuUtama.pn_Utama.revalidate();
-    }//GEN-LAST:event_bHapusActionPerformed
-
-    private void tbSuratMasukMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbSuratMasukMouseClicked
-     PopUpSuratMasuk suratMasukFrame = new PopUpSuratMasuk();
-        suratMasukFrame.setVisible(true);
-        
-        suratMasukFrame.bTambah.setVisible(false);
-        suratMasukFrame.setLocationRelativeTo(null);
-        
-        suratMasukFrame.ambilDetail();
-        
-        
-        
         try {
             SuratMasuk sur = new SuratMasuk();
 
-            
-    
+            int baris = tb_SuratMasuk.getSelectedRow();
 
-            int baris = tbSuratMasuk.getSelectedRow();
-       
-               
-                sur.setId_surat(tbSuratMasuk.getValueAt(baris, 0).toString());
-                sur.setKategori(tbSuratMasuk.getValueAt(baris, 1).toString());
-                sur.setBagian(tbSuratMasuk.getValueAt(baris, 2).toString());
-                sur.setAsal_surat(tbSuratMasuk.getValueAt(baris, 3).toString());
-                sur.setPerihal(tbSuratMasuk.getValueAt(baris, 4).toString());
+            sur.setId_surat(tb_SuratMasuk.getValueAt(baris, 0).toString());
+            sur.setKategori(tb_SuratMasuk.getValueAt(baris, 1).toString());
+            sur.setBagian(tb_SuratMasuk.getValueAt(baris, 2).toString());
+            sur.setAsal_surat(tb_SuratMasuk.getValueAt(baris, 3).toString());
+            sur.setPerihal(tb_SuratMasuk.getValueAt(baris, 4).toString());
 
-               
-                String tanggalDiterimaStr = tbSuratMasuk.getValueAt(baris, 5).toString();
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yy-MM-dd"); 
+            String tanggalDiterimaStr = tb_SuratMasuk.getValueAt(baris, 5).toString();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yy-MM-dd");
 
-                try {
-                    Date tanggalDiterima = dateFormat.parse(tanggalDiterimaStr);
-                    sur.setTanggal_diterima(new java.sql.Date(tanggalDiterima.getTime())); 
-                } catch (Exception e) {
-                    e.printStackTrace(); 
-                }
+            try {
+                Date tanggalDiterima = dateFormat.parse(tanggalDiterimaStr);
+                sur.setTanggal_diterima(new java.sql.Date(tanggalDiterima.getTime()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-             
-  
-                sur.setFile_data(tbSuratMasuk.getValueAt(baris, 6).toString());
-               
-              suratMasukFrame.ambilDetail();
-              
-           
+            sur.setFile_data(tb_SuratMasuk.getValueAt(baris, 6).toString());
+
+            suratMasukFrame.ambilDetail();
+
         } catch (SQLException sQLException) {
             sQLException.printStackTrace();
         } catch (Exception e) {
-            e.printStackTrace(); 
+            e.printStackTrace();
         }
-    }//GEN-LAST:event_tbSuratMasukMouseClicked
-
-    private void bDetailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bDetailActionPerformed
-      
-    }//GEN-LAST:event_bDetailActionPerformed
+    }//GEN-LAST:event_tb_SuratMasukMouseClicked
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    public javax.swing.JButton bDetail;
-    public javax.swing.JButton bEdit;
-    public javax.swing.JButton bHapus;
-    public javax.swing.JButton bOpen;
     public javax.swing.JButton bTambah;
-    public javax.swing.JButton bpn2Kembali;
-    public javax.swing.JComboBox<String> jComboBox1;
+    public javax.swing.JComboBox<String> cb_BagianMenu;
+    public javax.swing.JComboBox<String> cb_KategoriMenu;
+    public javax.swing.JButton jButton1;
     public javax.swing.JLabel jLabel1;
-    public javax.swing.JLabel jLabel10;
     public javax.swing.JLabel jLabel11;
-    public javax.swing.JLabel jLabel12;
-    public javax.swing.JLabel jLabel13;
-    public javax.swing.JLabel jLabel14;
-    public javax.swing.JLabel jLabel16;
-    public javax.swing.JLabel jLabel17;
-    public javax.swing.JLabel jLabel18;
-    public javax.swing.JLabel jLabel19;
-    public javax.swing.JLabel jLabel2;
-    public javax.swing.JLabel jLabel20;
-    public javax.swing.JLabel jLabel21;
-    public javax.swing.JLabel jLabel22;
-    public javax.swing.JLabel jLabel23;
-    public javax.swing.JLabel jLabel3;
-    public javax.swing.JLabel jLabel4;
-    public javax.swing.JLabel jLabel5;
-    public javax.swing.JLabel jLabel6;
-    public javax.swing.JLabel jLabel7;
-    public javax.swing.JLabel jLabel8;
-    public javax.swing.JLabel jLabel9;
+    public javax.swing.JLabel jLabel15;
     public javax.swing.JScrollPane jScrollPane2;
-    public javax.swing.JTextField jTextField9;
     public javax.swing.JPanel pn1;
-    public static javax.swing.JPanel pnDetail;
     public static javax.swing.JPanel pnMain;
-    public javax.swing.JLabel tId;
-    public javax.swing.JTable tbSuratMasuk;
-    public javax.swing.JLabel tdAsalSurat;
-    public javax.swing.JLabel tdFile;
-    public javax.swing.JLabel tdJenisSurat;
-    public javax.swing.JLabel tdJudul;
-    public javax.swing.JLabel tdKeterangan;
-    public javax.swing.JLabel tdNoSurat;
-    public javax.swing.JLabel tdPerihal;
-    public javax.swing.JLabel tdTanggalDIterima;
-    public javax.swing.JLabel tdTujuan;
+    public javax.swing.JTable tb_SuratMasuk;
+    public com.toedter.calendar.JDateChooser tf_TglMenu;
     // End of variables declaration//GEN-END:variables
 }

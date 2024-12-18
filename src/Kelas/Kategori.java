@@ -19,7 +19,7 @@ import javax.swing.JOptionPane;
  */
 public class Kategori {
 
-    int id_ktgr;
+    int id_ktgr, jumlah = 0;
     String kode, nama;
 
     private Connection conn;
@@ -195,6 +195,28 @@ public class Kategori {
         }
 
         return newID;
+    }
+    
+    // Method untuk menampilkan jumlah Kategori
+    public int TampilJumlahKategori() {
+        query = "SELECT COUNT(*) AS jumlah FROM kategori";
+
+        try {
+            st = conn.createStatement();
+            rs = st.executeQuery(query);
+
+            if (rs.next()) {
+                jumlah = rs.getInt("jumlah");
+            }
+
+            rs.close();
+            st.close();
+        } catch (SQLException sQLException) {
+            JOptionPane.showMessageDialog(null, "Data gagal ditampilkan: " + sQLException.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return jumlah;
     }
 
 }

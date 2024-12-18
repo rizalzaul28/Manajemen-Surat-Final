@@ -64,6 +64,8 @@ public class PopUpKategori extends javax.swing.JDialog {
         jLabel1.setFont(new java.awt.Font("Georgia", 1, 24)); // NOI18N
         jLabel1.setText("Form Tambah Kategori");
 
+        lb_Id.setBackground(new java.awt.Color(255, 255, 255));
+        lb_Id.setForeground(new java.awt.Color(255, 255, 255));
         lb_Id.setText("0");
 
         jLabel2.setText("Kode Bagian");
